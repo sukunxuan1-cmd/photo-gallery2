@@ -123,7 +123,74 @@
     <div class="lb-progress"><span id="lbProgress"></span></div>
   </div>
 
+  <!-- ===== 惊喜功能区 ===== -->
+
+  <!-- 悬浮功能坞 -->
+  <div class="dock" id="dock">
+    <button class="dock-btn" id="dockTv" title="电视墙模式（活动大屏）"><span>📺</span><i>电视墙</i></button>
+    <button class="dock-btn" id="dockBox" title="照片盲盒"><span>🎁</span><i>盲盒</i></button>
+    <button class="dock-btn" id="dockFire" title="烟花庆祝"><span>🎆</span><i>烟花</i></button>
+    <button class="dock-btn" id="dockDm" title="弹幕祝福墙"><span>💬</span><i>弹幕</i></button>
+    <button class="dock-btn" id="dockStar" title="重播照片汇聚"><span>✨</span><i>汇聚</i></button>
+  </div>
+
+  <!-- 电视墙模式 -->
+  <div class="tvwall" id="tvwall">
+    <div class="tv-grid" id="tvGrid"></div>
+    <div class="tv-vignette"></div>
+    <div class="tv-spot" id="tvSpot">
+      <img src="" alt="">
+      <div class="tv-spot-name"></div>
+    </div>
+    <div class="tv-brand">✦ 遇见幸福 · 时光电视墙</div>
+    <button class="tv-exit" id="tvExit">✕ 退出</button>
+  </div>
+
+  <!-- 照片盲盒 -->
+  <div class="bbox" id="bbox">
+    <div class="bbox-bg" id="bboxBg"></div>
+    <div class="bbox-stage">
+      <div class="bbox-gift" id="bboxGift">
+        <div class="gift-emoji">🎁</div>
+        <div class="bbox-hint" id="bboxHint">点我，抽一段回忆</div>
+      </div>
+      <div class="bbox-card" id="bboxCard">
+        <div class="bbox-photo"><img id="bboxImg" src="" alt=""></div>
+        <div class="bbox-name" id="bboxName"></div>
+        <div class="bbox-q">—— 还记得这一天吗？——</div>
+        <div class="bbox-actions">
+          <button id="bboxAgain">🎲 再抽一次</button>
+          <button id="bboxKeep">💛 收下回忆</button>
+        </div>
+      </div>
+    </div>
+    <button class="bbox-close" id="bboxClose">✕</button>
+  </div>
+
+  <!-- 弹幕层 + 弹幕面板 -->
+  <div class="danmaku-layer" id="dmLayer"></div>
+  <div class="danmaku-panel" id="dmPanel">
+    <button class="dm-close" id="dmClose">✕</button>
+    <h3>弹幕祝福墙</h3>
+    <p class="dm-tip">写一句祝福，它会一直飘在我们的时光里</p>
+    <div class="dm-row">
+      <input id="dmInput" maxlength="40" placeholder="例如：遇见幸福，一路同行 ✦">
+      <button id="dmSend">发射 ➤</button>
+    </div>
+    <label class="dm-toggle"><input type="checkbox" id="dmOn" checked><span>显示弹幕</span></label>
+  </div>
+
+  <!-- 烟花 / 粒子特效画布 -->
+  <canvas id="fxCanvas"></canvas>
+
+  <!-- 照片汇聚成字 -->
+  <div class="converge" id="converge">
+    <canvas id="convergeCanvas"></canvas>
+    <div class="converge-skip">点击任意处跳过</div>
+  </div>
+
   <script src="js/photos.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/extras.js"></script>
 </body>
 </html>
