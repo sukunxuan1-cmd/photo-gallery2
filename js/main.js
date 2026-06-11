@@ -163,11 +163,14 @@
     const el = $("#heroTitle");
     const text = el.textContent;
     el.textContent = "";
-    [...text].forEach((ch, i) => {
+    const chars = [...text];
+    chars.forEach((ch, i) => {
       const span = document.createElement("span");
       span.className = "ch";
       span.textContent = ch;
       span.style.animationDelay = `${1.9 + i * 0.12}s`;
+      // 渐变在字符自身上，按位置错开取色，整行拼成连续渐变
+      span.style.backgroundPosition = `${chars.length > 1 ? (i / (chars.length - 1)) * 100 : 0}% 0`;
       el.appendChild(span);
     });
   })();

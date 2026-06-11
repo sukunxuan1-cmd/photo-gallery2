@@ -174,19 +174,28 @@ body {
 .hero-title {
   font-size: clamp(56px, 13vw, 150px);
   font-weight: 800; line-height: 1.08; letter-spacing: .08em;
-  background: linear-gradient(115deg, var(--gold) 10%, var(--pink) 45%, var(--violet) 70%, var(--cyan) 95%);
-  background-size: 220% 220%;
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: gradientFlow 7s ease infinite;
+  /* 色相缓慢流动，配合每个字符自身的渐变 */
+  animation: hueFlow 9s ease-in-out infinite;
 }
-@keyframes gradientFlow {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+@keyframes hueFlow {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(45deg); }
 }
+/* 渐变必须放在字符自身上：父元素 background-clip:text 会被
+   子元素的合成层动画破坏（Chrome 渲染 bug，导致文字隐形） */
 .hero-title .ch {
   display: inline-block;
+  color: var(--gold); /* 不支持 background-clip:text 时的兜底色 */
+  background: linear-gradient(115deg, var(--gold) 0%, var(--pink) 38%, var(--violet) 68%, var(--cyan) 100%);
+  background-size: 420% 100%;
   opacity: 0; transform: translateY(60px) rotateX(60deg);
   animation: chIn .9s var(--ease) forwards;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero-title .ch {
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
 }
 @keyframes chIn { to { opacity: 1; transform: none; } }
 .hero-sub { margin-top: 26px; font-size: 16px; color: var(--ink-dim); letter-spacing: .25em; }

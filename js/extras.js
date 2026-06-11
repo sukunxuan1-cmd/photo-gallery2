@@ -259,7 +259,7 @@
     const KEY = "tg_danmaku_msgs";
 
     const SEEDS = [
-      "遇见幸福，一路同行 ✦",
+      "美森耐，一路同行 ✦",
       "每一张照片，都是我们的勋章 🏆",
       "把平凡的日子，过成值得纪念的样子",
       "我们的故事，未完待续……",
@@ -355,7 +355,7 @@
       });
     }
 
-    // 把「遇见幸福」渲染成点阵坐标
+    // 把「美森耐」渲染成点阵坐标
     function sampleText(W, H) {
       const off = document.createElement("canvas");
       off.width = W; off.height = H;
@@ -365,7 +365,7 @@
       c.textAlign = "center";
       c.textBaseline = "middle";
       c.fillStyle = "#fff";
-      c.fillText("遇见幸福", W / 2, H / 2);
+      c.fillText("美森耐", W / 2, H / 2);
       const d = c.getImageData(0, 0, W, H).data;
       let step = 5, pts;
       do {

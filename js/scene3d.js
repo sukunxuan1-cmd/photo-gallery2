@@ -168,7 +168,7 @@
       coreGlow.scale.set(26, 26, 1);
       group.add(coreGlow);
 
-      const title = textTexture("遇见幸福", { size: 110 });
+      const title = textTexture("美森耐", { size: 110 });
       const titleSprite = new THREE.Sprite(new THREE.SpriteMaterial({
         map: title.tex, transparent: true, depthWrite: false
       }));
@@ -405,7 +405,7 @@
       });
 
       // 尽头墙上的金字
-      const endTitle = textTexture("遇见幸福 · 时光美术馆", { size: 80 });
+      const endTitle = textTexture("美森耐 · 时光美术馆", { size: 80 });
       const endPlane = new THREE.Mesh(
         new THREE.PlaneGeometry(7 * endTitle.aspect / 4, 7 / 4),
         new THREE.MeshBasicMaterial({ map: endTitle.tex, transparent: true })
