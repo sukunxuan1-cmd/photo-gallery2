@@ -2,7 +2,7 @@
    （仅作为双击 index.html 直接打开时的备用清单；
      用「启动网页.bat」打开时网页会实时扫描 photos 文件夹。） */
 window.GALLERY_DATA = {
-  "generatedAt": "2026-06-11 17:59:17",
+  "generatedAt": "2026-06-11 18:25:19",
   "categories": [
     {
       "name": "9.3阅兵观看",
@@ -117,7 +117,9 @@ window.GALLERY_DATA = {
     {
       "name": "A-日常素材",
       "folder": "photos/A-日常素材",
-      "photos": []
+      "photos": [
+        "photos/A-日常素材/6f20ef03dc8d514182474ffd6263acc.jpg"
+      ]
     },
     {
       "name": "A-未分类",
