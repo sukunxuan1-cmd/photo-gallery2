@@ -31,6 +31,11 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: 自动压缩大图
+        run: |
+          pip install --quiet pillow
+          python tools/compress_photos.py
+
       - name: 扫描照片生成清单
         run: python tools/build_photos.py
 

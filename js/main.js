@@ -449,6 +449,10 @@
     img.style.animation = "";
     img.src = encodeURI(currentPhotos[currentIndex]);
     $("#lbCaption").textContent = `${currentIndex + 1} / ${currentPhotos.length}`;
+    // 通知照片弹幕模块：现在看的是这张
+    dispatchEvent(new CustomEvent("photoshow", {
+      detail: { context: "lightbox", src: currentPhotos[currentIndex] }
+    }));
     const span = $("#lbProgress");
     span.style.transition = "none";
     span.style.width = `${((currentIndex + 1) / currentPhotos.length) * 100}%`;
@@ -464,6 +468,7 @@
   function closeLightbox() {
     $("#lightbox").classList.remove("open");
     stopSlideshow();
+    dispatchEvent(new CustomEvent("photohide", { detail: { context: "lightbox" } }));
   }
 
   function startSlideshow() {
@@ -490,6 +495,7 @@
   $(".lightbox-bg").addEventListener("click", closeLightbox);
 
   addEventListener("keydown", (e) => {
+    if (e.target.tagName === "INPUT") return; // 输入弹幕时不切换照片
     if ($("#lightbox").classList.contains("open")) {
       if (e.key === "Escape") closeLightbox();
       if (e.key === "ArrowLeft") { stopSlideshow(); nav(-1); }
