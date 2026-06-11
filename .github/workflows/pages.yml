@@ -37,6 +37,8 @@ jobs:
 
       - name: 配置 Pages
         uses: actions/configure-pages@v4
+        with:
+          enablement: true   # 首次自动启用 Pages（来源设为 GitHub Actions）
 
       - name: 打包站点
         uses: actions/upload-pages-artifact@v3
