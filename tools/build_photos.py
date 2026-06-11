@@ -37,7 +37,8 @@ def display_name(folder_name: str) -> str:
     return name.strip(" -—–_") or folder_name
 
 
-def main():
+def collect():
+    """扫描 photos/ 目录，返回相册数据字典（网页服务器和清单生成共用）"""
     if not PHOTOS_DIR.is_dir():
         raise SystemExit(f"找不到照片目录: {PHOTOS_DIR}")
 
@@ -53,36 +54,39 @@ def main():
     folders.sort(key=order_key)
 
     categories = []
-    total = 0
     for folder in folders:
         images = sorted(
             [f for f in folder.iterdir()
              if f.is_file() and f.suffix.lower() in IMAGE_EXTS],
             key=lambda f: natural_key(f.name),
         )
-        photos = [f"photos/{folder.name}/{f.name}" for f in images]
-        total += len(photos)
         categories.append({
             "name": display_name(folder.name),
             "folder": f"photos/{folder.name}",
-            "photos": photos,
+            "photos": [f"photos/{folder.name}/{f.name}" for f in images],
         })
 
-    data = {
+    return {
         "generatedAt": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "categories": categories,
     }
 
+
+def main():
+    data = collect()
+    total = sum(len(c["photos"]) for c in data["categories"])
+
     OUTPUT.write_text(
         "/* 本文件由 tools/build_photos.py 自动生成，请勿手动编辑。\n"
-        "   往 photos/ 各文件夹放入照片后，双击「更新照片.bat」即可重新生成。 */\n"
+        "   （仅作为双击 index.html 直接打开时的备用清单；\n"
+        "     用「启动网页.bat」打开时网页会实时扫描 photos 文件夹。） */\n"
         "window.GALLERY_DATA = "
         + json.dumps(data, ensure_ascii=False, indent=2)
         + ";\n",
         encoding="utf-8",
     )
 
-    print(f"完成！共 {len(categories)} 个相册、{total} 张照片")
+    print(f"完成！共 {len(data['categories'])} 个相册、{total} 张照片")
     print(f"已写入 {OUTPUT}")
 
 

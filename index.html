@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>遇见幸福 · 时光画廊</title>
+<title>美森耐 · 时光画廊</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
   <div id="loader">
     <div class="loader-inner">
       <div class="loader-ring"></div>
-      <div class="loader-logo">遇见幸福</div>
+      <div class="loader-logo">美森耐</div>
       <div class="loader-sub">TIME GALLERY · 时光画廊</div>
       <div class="loader-bar"><span></span></div>
     </div>
@@ -34,7 +34,7 @@
 
   <!-- 顶部导航 -->
   <nav id="nav">
-    <div class="nav-logo" data-magnetic>✦ 时光画廊</div>
+    <div class="nav-logo" data-magnetic>✦ 美森耐 · 时光画廊</div>
     <div class="nav-right">
       <button class="music-btn" id="musicBtn" title="背景音乐">
         <span class="bars"><i></i><i></i><i></i><i></i></span>
@@ -45,8 +45,8 @@
 
   <!-- 首屏 Hero -->
   <header class="hero" id="hero">
-    <p class="hero-kicker reveal">PHOTO COLLECTION · 2024 — 2026</p>
-    <h1 class="hero-title" id="heroTitle">遇见幸福</h1>
+    <p class="hero-kicker reveal">美森耐 · PHOTO COLLECTION · 2024 — 2026</p>
+    <h1 class="hero-title" id="heroTitle">美森耐</h1>
     <p class="hero-sub reveal">每一张照片，都是时光写给我们的情书</p>
     <div class="hero-stats reveal">
       <div class="stat"><span class="stat-num" id="statPhotos" data-count="0">0</span><span class="stat-label">张照片</span></div>
@@ -61,6 +61,18 @@
     </button>
     <div class="scroll-hint"><span></span></div>
   </header>
+
+  <!-- 3D 时光相框 -->
+  <section class="frame3d-section" id="frame3d">
+    <div class="section-head reveal">
+      <h2 class="section-title">3D 时光相框</h2>
+      <p class="section-sub">MEMORY FRAMES · 随机闪回，每 5 秒翻新 · 可拖动旋转</p>
+    </div>
+    <div class="frame3d-stage" id="frameStage">
+      <div class="frame3d-ring" id="frameRing"><!-- JS 渲染 --></div>
+      <div class="frame3d-glow"></div>
+    </div>
+  </section>
 
   <!-- 相册分类区 -->
   <main class="albums" id="albums">
@@ -111,7 +123,102 @@
     <div class="lb-progress"><span id="lbProgress"></span></div>
   </div>
 
+  <!-- ===== 惊喜功能区 ===== -->
+
+  <!-- 悬浮功能坞 -->
+  <div class="dock" id="dock">
+    <button class="dock-btn" id="dockGalaxy" title="3D 照片星河"><span>🌌</span><i>星河</i></button>
+    <button class="dock-btn" id="dockMuseum" title="虚拟美术馆"><span>🏛️</span><i>美术馆</i></button>
+    <button class="dock-btn" id="dockTv" title="电视墙模式（活动大屏）"><span>📺</span><i>电视墙</i></button>
+    <button class="dock-btn" id="dockBox" title="照片盲盒"><span>🎁</span><i>盲盒</i></button>
+    <button class="dock-btn" id="dockFire" title="烟花庆祝"><span>🎆</span><i>烟花</i></button>
+    <button class="dock-btn" id="dockDm" title="弹幕祝福墙"><span>💬</span><i>弹幕</i></button>
+    <button class="dock-btn" id="dockStar" title="重播照片汇聚"><span>✨</span><i>汇聚</i></button>
+  </div>
+
+  <!-- 3D 照片星河 -->
+  <div class="scene3d" id="galaxyView">
+    <canvas id="galaxyCanvas"></canvas>
+    <div class="s3-brand">🌌 美森耐 · 照片星河</div>
+    <div class="s3-hint">拖动旋转 · 滚轮/双指缩放 · 点击照片查看</div>
+    <button class="s3-exit" id="galaxyExit">✕ 退出</button>
+  </div>
+
+  <!-- 虚拟美术馆 -->
+  <div class="scene3d" id="museumView">
+    <canvas id="museumCanvas"></canvas>
+    <div class="s3-brand">🏛️ 美森耐 · 时光美术馆</div>
+    <div class="s3-hint" id="museumHint">W/S 或 ↑↓ 前进后退 · 拖动环顾 · 点击画作欣赏</div>
+    <div class="s3-walk">
+      <button id="walkFwd">▲</button>
+      <button id="walkBack">▼</button>
+    </div>
+    <button class="s3-exit" id="museumExit">✕ 退出</button>
+  </div>
+
+  <!-- 3D 场景的照片放大层 -->
+  <div class="s3-zoom" id="s3Zoom">
+    <img id="s3ZoomImg" src="" alt="">
+    <div class="s3-zoom-name" id="s3ZoomName"></div>
+    <div class="s3-zoom-tip">点击任意处关闭</div>
+  </div>
+
+  <!-- 电视墙模式 -->
+  <div class="tvwall" id="tvwall">
+    <div class="tv-grid" id="tvGrid"></div>
+    <div class="tv-vignette"></div>
+    <div class="tv-spot" id="tvSpot">
+      <img src="" alt="">
+      <div class="tv-spot-name"></div>
+    </div>
+    <div class="tv-brand">✦ 美森耐 · 时光电视墙</div>
+    <button class="tv-exit" id="tvExit">✕ 退出</button>
+  </div>
+
+  <!-- 照片盲盒 -->
+  <div class="bbox" id="bbox">
+    <div class="bbox-bg" id="bboxBg"></div>
+    <div class="bbox-stage">
+      <div class="bbox-gift" id="bboxGift">
+        <div class="gift-emoji">🎁</div>
+        <div class="bbox-hint" id="bboxHint">点我，抽一段回忆</div>
+      </div>
+      <div class="bbox-card" id="bboxCard">
+        <div class="bbox-photo"><img id="bboxImg" src="" alt=""></div>
+        <div class="bbox-name" id="bboxName"></div>
+        <div class="bbox-q">—— 还记得这一天吗？——</div>
+        <div class="bbox-actions">
+          <button id="bboxAgain">🎲 再抽一次</button>
+          <button id="bboxKeep">💛 收下回忆</button>
+        </div>
+      </div>
+    </div>
+    <button class="bbox-close" id="bboxClose">✕</button>
+  </div>
+
+  <!-- 弹幕层 + 弹幕面板 -->
+  <div class="danmaku-layer" id="dmLayer"></div>
+  <div class="danmaku-panel" id="dmPanel">
+    <button class="dm-close" id="dmClose">✕</button>
+    <h3>弹幕祝福墙</h3>
+    <p class="dm-tip">写一句祝福，它会一直飘在我们的时光里</p>
+    <div class="dm-row">
+      <input id="dmInput" maxlength="40" placeholder="例如：美森耐，一路同行 ✦">
+      <button id="dmSend">发射 ➤</button>
+    </div>
+    <label class="dm-toggle"><input type="checkbox" id="dmOn" checked><span>显示弹幕</span></label>
+  </div>
+
+  <!-- 烟花 / 粒子特效画布 -->
+  <canvas id="fxCanvas"></canvas>
+
+  <!-- 照片汇聚成字 -->
+  <div class="converge" id="converge">
+    <canvas id="convergeCanvas"></canvas>
+    <div class="converge-skip">点击任意处跳过</div>
+  </div>
+
   <script src="js/photos.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/data-loader.js"></script>
 </body>
 </html>
