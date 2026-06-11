@@ -1,5 +1,5 @@
 /* ============ 时光画廊 · 惊喜功能 ============
-   电视墙模式 / 照片盲盒 / 烟花庆祝 / 照片汇聚成字 / 弹幕祝福墙 */
+   电视墙模式 / 照片盲盒 / 烟花庆祝 / 照片汇聚成字 / 照片专属弹幕 */
 (function () {
   "use strict";
 
@@ -96,7 +96,7 @@
 
     function launch(e) {
       // 点在面板/按钮上的不放烟花，避免误触
-      if (e.target.closest(".dock, .danmaku-panel, button, input, a, .bbox-card")) return;
+      if (e.target.closest(".dock, .pdm-bar, button, input, a, .bbox-card")) return;
       fx.rocket(e.clientX, e.clientY);
     }
 
@@ -252,77 +252,94 @@
     return { close, isOpen: () => isOpen };
   })();
 
-  /* ================= 💬 弹幕祝福墙 ================= */
-  const danmaku = (function () {
-    const layer = $("#dmLayer"), panel = $("#dmPanel");
-    const input = $("#dmInput"), onBox = $("#dmOn");
-    const KEY = "tg_danmaku_msgs";
-
-    const SEEDS = [
-      "美森耐，一路同行 ✦",
-      "每一张照片，都是我们的勋章 🏆",
-      "把平凡的日子，过成值得纪念的样子",
-      "我们的故事，未完待续……",
-      "幸福是一群人一起发光 ✨",
-      "下一站，更好的我们 🚀"
-    ];
-
-    function loadUser() {
+  /* ================= 💬 照片专属弹幕 =================
+     每张照片有自己的弹幕：在灯箱 / 3D 放大层里查看照片时，
+     这张照片收到过的弹幕循环飘过，新弹幕只属于当前照片。
+     由 main.js / scene3d.js 派发 photoshow / photohide 事件驱动。 */
+  (function photoDanmaku() {
+    const KEY = "tg_dm_photo";
+    function load() {
       try {
-        const a = JSON.parse(localStorage.getItem(KEY));
-        return Array.isArray(a) ? a : [];
-      } catch { return []; }
+        const o = JSON.parse(localStorage.getItem(KEY));
+        return o && typeof o === "object" && !Array.isArray(o) ? o : {};
+      } catch { return {}; }
     }
-    let userMsgs = loadUser();
-    const all = () => SEEDS.concat(userMsgs);
-    let idx = Math.floor(Math.random() * SEEDS.length);
+    const store = load();
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(store)); } catch {}
+    }
 
-    function spawn(text, vip) {
-      if (!onBox.checked && !vip) return;
+    const ctxs = {}; // 展示场景：lightbox（灯箱）、s3（3D 放大层）
+
+    function spawnIn(ctx, text, vip) {
+      if (!ctx.on.checked && !vip) return;
       const el = document.createElement("div");
       el.className = `dm-item c${Math.floor(rand(0, 5))}${vip ? " vip" : ""}`;
       el.textContent = text;
-      el.style.top = rand(6, 80) + "%";
-      layer.appendChild(el);
+      el.style.top = rand(8, 72) + "%";
+      ctx.layer.appendChild(el);
       const w = el.offsetWidth;
+      const lw = ctx.layer.clientWidth || innerWidth;
       el.animate(
-        [{ transform: `translateX(${innerWidth + 30}px)` },
+        [{ transform: `translateX(${lw + 30}px)` },
          { transform: `translateX(${-w - 60}px)` }],
-        { duration: rand(9000, 15000), easing: "linear" }
+        { duration: rand(7000, 11000), easing: "linear" }
       ).onfinish = () => el.remove();
     }
 
-    // 弹幕循环
-    setInterval(() => {
-      if (!onBox.checked) return;
-      const list = all();
-      spawn(list[idx % list.length]);
-      idx++;
-    }, 2400);
-    // 开屏先飘两条
-    setTimeout(() => spawn(SEEDS[0]), 3500);
-    setTimeout(() => spawn(SEEDS[1]), 5200);
-
-    function send() {
-      const text = input.value.trim();
-      if (!text) return;
-      userMsgs.push(text);
-      try { localStorage.setItem(KEY, JSON.stringify(userMsgs.slice(-200))); } catch {}
-      input.value = "";
-      spawn(text, true);
+    function show(name, key) {
+      const ctx = ctxs[name];
+      if (!ctx) return;
+      hide(name);
+      ctx.key = key;
+      ctx.idx = 0;
+      const msgs = store[key] || [];
+      if (msgs.length) spawnIn(ctx, msgs[0]);
+      ctx.timer = setInterval(() => {
+        const list = store[ctx.key] || [];
+        if (!list.length) return;
+        ctx.idx = (ctx.idx + 1) % list.length;
+        spawnIn(ctx, list[ctx.idx]);
+      }, 3200);
     }
-    $("#dmSend").addEventListener("click", send);
-    input.addEventListener("keydown", (e) => { if (e.key === "Enter") send(); });
 
-    onBox.addEventListener("change", () => { if (!onBox.checked) layer.innerHTML = ""; });
-
-    function toggle() {
-      panel.classList.toggle("open");
-      if (panel.classList.contains("open")) input.focus();
+    function hide(name) {
+      const ctx = ctxs[name];
+      if (!ctx) return;
+      clearInterval(ctx.timer);
+      ctx.timer = null;
+      ctx.key = null;
+      ctx.layer.innerHTML = "";
     }
-    $("#dockDm").addEventListener("click", toggle);
-    $("#dmClose").addEventListener("click", () => panel.classList.remove("open"));
-    return { panel };
+
+    function register(name, ids) {
+      const ctx = ctxs[name] = {
+        layer: $(ids.layer), input: $(ids.input), on: $(ids.on),
+        key: null, timer: null, idx: 0
+      };
+      if (!ctx.layer || !ctx.input) return;
+      function send() {
+        const text = ctx.input.value.trim();
+        if (!text || !ctx.key) return;
+        (store[ctx.key] = store[ctx.key] || []).push(text);
+        if (store[ctx.key].length > 200) store[ctx.key] = store[ctx.key].slice(-200);
+        save();
+        ctx.input.value = "";
+        spawnIn(ctx, text, true);
+      }
+      $(ids.send).addEventListener("click", send);
+      ctx.input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") send();
+        e.stopPropagation(); // 别让方向键/ESC 影响照片切换
+      });
+      ctx.on.addEventListener("change", () => { if (!ctx.on.checked) ctx.layer.innerHTML = ""; });
+    }
+
+    register("lightbox", { layer: "#lbDmLayer", input: "#lbDmInput", send: "#lbDmSend", on: "#lbDmOn" });
+    register("s3", { layer: "#s3DmLayer", input: "#s3DmInput", send: "#s3DmSend", on: "#s3DmOn" });
+
+    addEventListener("photoshow", (e) => show(e.detail.context, e.detail.src));
+    addEventListener("photohide", (e) => hide(e.detail.context));
   })();
 
   /* ================= ✨ 照片汇聚成字 ================= */
@@ -474,7 +491,6 @@
     if (e.key !== "Escape") return;
     if (bbox.isOpen()) bbox.close();
     else if (tvwall.isOpen()) tvwall.exit();
-    else danmaku.panel.classList.remove("open");
   });
 
 })();

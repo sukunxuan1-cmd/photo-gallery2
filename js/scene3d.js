@@ -110,8 +110,16 @@
     $("#s3ZoomImg").src = src ? encodeURI(src) : "";
     $("#s3ZoomName").textContent = name || "";
     zoom.classList.add("open");
+    dispatchEvent(new CustomEvent("photoshow", { detail: { context: "s3", src } }));
   }
-  zoom.addEventListener("click", () => zoom.classList.remove("open"));
+  function closeZoom() {
+    zoom.classList.remove("open");
+    dispatchEvent(new CustomEvent("photohide", { detail: { context: "s3" } }));
+  }
+  zoom.addEventListener("click", (e) => {
+    if (e.target.closest(".pdm-bar")) return; // 点弹幕输入条不关闭
+    closeZoom();
+  });
 
   function makeRenderer(canvas) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -583,7 +591,7 @@
   /* ================= ESC 退出 ================= */
   addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    if (zoom.classList.contains("open")) zoom.classList.remove("open");
+    if (zoom.classList.contains("open")) closeZoom();
     else if (galaxy.isOpen()) galaxy.exit();
     else if (museum.isOpen()) museum.exit();
   });

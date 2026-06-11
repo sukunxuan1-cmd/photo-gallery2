@@ -719,11 +719,45 @@ body {
 }
 .bbox-close:hover { border-color: var(--pink); transform: rotate(90deg); }
 
-/* ---------- 弹幕 ---------- */
-.danmaku-layer {
-  position: fixed; inset: 0; z-index: 450;
+/* ---------- 照片专属弹幕 ---------- */
+.pdm-layer {
+  position: absolute; inset: 0; z-index: 4;
   pointer-events: none; overflow: hidden;
 }
+.pdm-bar {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  z-index: 5;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  background: rgba(12, 11, 26, .82);
+  border: 1px solid var(--glass-edge); border-radius: 99px;
+  backdrop-filter: blur(14px);
+  width: min(460px, calc(100vw - 32px));
+}
+#lbDmBar { bottom: 92px; }
+#s3DmBar { bottom: 26px; }
+.pdm-bar input[type="text"], .pdm-bar input:not([type]) {
+  flex: 1; min-width: 0;
+  padding: 9px 14px; border-radius: 99px;
+  background: rgba(255,255,255,.07); border: 1px solid transparent;
+  color: var(--ink); font-size: 13px; outline: none;
+  transition: border-color .3s;
+}
+.pdm-bar input:not([type="checkbox"]):focus { border-color: var(--gold); }
+.pdm-bar button {
+  padding: 9px 16px; border-radius: 99px; white-space: nowrap;
+  background: linear-gradient(115deg, rgba(255,215,106,.2), rgba(255,122,217,.2));
+  border: 1px solid var(--glass-edge); color: var(--ink);
+  font-size: 12px; letter-spacing: .08em; cursor: none;
+  transition: border-color .3s, box-shadow .3s;
+}
+.pdm-bar button:hover { border-color: var(--gold); box-shadow: 0 0 16px rgba(255,215,106,.25); }
+.pdm-toggle {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--ink-dim); letter-spacing: .08em;
+  cursor: none; white-space: nowrap; padding-right: 6px;
+}
+.pdm-toggle input { accent-color: #ff7ad9; }
 .dm-item {
   position: absolute; left: 0; top: 0;
   white-space: nowrap;
@@ -740,50 +774,6 @@ body {
   -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 0 14px rgba(255, 200, 120, .5));
 }
-.danmaku-panel {
-  position: fixed; right: 84px; top: 50%; transform: translateY(-50%) translateX(16px);
-  z-index: 460; width: min(340px, calc(100vw - 110px));
-  padding: 24px;
-  background: rgba(12, 11, 26, .92);
-  border: 1px solid var(--glass-edge); border-radius: 18px;
-  backdrop-filter: blur(18px);
-  box-shadow: 0 24px 80px rgba(0,0,0,.6);
-  opacity: 0; visibility: hidden;
-  transition: opacity .35s var(--ease), transform .35s var(--ease), visibility .35s;
-}
-.danmaku-panel.open { opacity: 1; visibility: visible; transform: translateY(-50%) translateX(0); }
-.danmaku-panel h3 { font-size: 17px; letter-spacing: .15em; }
-.dm-tip { margin-top: 8px; font-size: 12px; color: var(--ink-dim); letter-spacing: .05em; }
-.dm-row { margin-top: 16px; display: flex; gap: 8px; }
-.dm-row input {
-  flex: 1; min-width: 0;
-  padding: 11px 14px; border-radius: 10px;
-  background: rgba(255,255,255,.06); border: 1px solid var(--glass-edge);
-  color: var(--ink); font-size: 13px; outline: none;
-  transition: border-color .3s;
-}
-.dm-row input:focus { border-color: var(--gold); }
-.dm-row button {
-  padding: 11px 16px; border-radius: 10px;
-  background: linear-gradient(115deg, rgba(255,215,106,.2), rgba(255,122,217,.2));
-  border: 1px solid var(--glass-edge); color: var(--ink);
-  font-size: 13px; letter-spacing: .08em; cursor: none; white-space: nowrap;
-  transition: border-color .3s, box-shadow .3s;
-}
-.dm-row button:hover { border-color: var(--gold); box-shadow: 0 0 18px rgba(255,215,106,.25); }
-.dm-toggle {
-  margin-top: 14px; display: flex; align-items: center; gap: 8px;
-  font-size: 12px; color: var(--ink-dim); letter-spacing: .1em; cursor: none;
-}
-.dm-toggle input { accent-color: #ff7ad9; }
-.dm-close {
-  position: absolute; top: 12px; right: 12px;
-  width: 30px; height: 30px; border-radius: 50%;
-  background: transparent; border: 1px solid transparent;
-  color: var(--ink-dim); font-size: 13px; cursor: none;
-  transition: border-color .3s, color .3s;
-}
-.dm-close:hover { border-color: var(--glass-edge); color: var(--ink); }
 
 /* ---------- 3D 场景（星河 / 美术馆） ---------- */
 .scene3d {
@@ -890,12 +880,6 @@ body {
   }
   .dock-btn { width: 42px; height: 42px; font-size: 18px; }
   .dock-btn i { display: none; }
-  .danmaku-panel {
-    right: 50%; top: auto; bottom: 78px;
-    transform: translateX(50%) translateY(10px);
-    width: min(340px, calc(100vw - 28px));
-  }
-  .danmaku-panel.open { transform: translateX(50%) translateY(0); }
   .dm-item { font-size: 14px; }
   .dm-item.vip { font-size: 18px; }
   .gift-emoji { font-size: 96px; }
