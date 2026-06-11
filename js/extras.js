@@ -722,12 +722,15 @@
       }
     }
 
+    let session = 0; // 代数令牌：跳过/重播时让旧的绘制循环自动作废
     function play() {
       if (playing) return;
       playing = true;
+      const my = ++session;
       wrap.classList.add("show");
 
       buildTiles(() => {
+        if (my !== session) return; // 等待图块期间被跳过了
         const W = canvas.width = innerWidth;
         const H = canvas.height = innerHeight;
         const { pts, step } = sampleText(W, H);
@@ -755,6 +758,7 @@
         const t0 = performance.now();
 
         function frame(t) {
+          if (my !== session) return; // 已被跳过或重播
           const el = (t - t0) / 1000;
           ctx.clearRect(0, 0, W, H);
 
@@ -791,9 +795,11 @@
     }
 
     function finish() {
+      session++; // 作废所有进行中的循环
       cancelAnimationFrame(raf);
       wrap.classList.remove("show");
-      setTimeout(() => { ctx.clearRect(0, 0, canvas.width, canvas.height); playing = false; }, 700);
+      playing = false;
+      setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 700);
     }
 
     wrap.addEventListener("click", finish);

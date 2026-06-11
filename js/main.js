@@ -137,9 +137,10 @@
       requestAnimationFrame(follow);
     })();
 
-    // 磁吸：按钮轻轻吸向鼠标
+    // 磁吸：按钮轻轻吸向鼠标（元素都是静态的，启动时缓存一次，避免每次移动都查 DOM）
+    const magnets = document.querySelectorAll("[data-magnetic]");
     document.addEventListener("mousemove", (e) => {
-      document.querySelectorAll("[data-magnetic]").forEach((el) => {
+      magnets.forEach((el) => {
         const r = el.getBoundingClientRect();
         const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
         const dx = e.clientX - cx, dy = e.clientY - cy;

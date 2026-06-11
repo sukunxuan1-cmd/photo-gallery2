@@ -1,12 +1,10 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-where python >nul 2>nul
-if %errorlevel%==0 (set PY=python) else (
-    where py >nul 2>nul
-    if %errorlevel%==0 (set PY=py) else (set PY=)
-)
-if "%PY%"=="" (
+set "PY="
+where python >nul 2>nul && set "PY=python"
+if not defined PY (where py >nul 2>nul && set "PY=py")
+if not defined PY (
     echo [提示] 没有找到 Python，无法启动本地服务。
     echo 请安装 Python（勾选 Add Python to PATH）：https://www.python.org/downloads/
     echo 现在改为直接打开 index.html（照片需先双击「更新照片.bat」生成清单）...
