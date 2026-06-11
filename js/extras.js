@@ -394,6 +394,235 @@
     addEventListener("photohide", (e) => hide(e.detail.context));
   })();
 
+  /* ================= ❤️ 照片点赞 + 🏆 人气殿堂 =================
+     点赞与弹幕共用 js/cloud-config.js 的 Supabase 配置：
+     配置后全员共享点赞数（只能通过 like_photo 函数 +1，无法篡改）；
+     未配置则记录在本人浏览器。每张照片每个浏览器只能赞一次。 */
+  const ranking = (function likesAndRanking() {
+    const CFG = window.CLOUD_DANMAKU || {};
+    const cloudOn = !!(CFG.url && CFG.anonKey);
+    const REST = cloudOn ? CFG.url.replace(/\/+$/, "") + "/rest/v1" : "";
+    const HEADERS = cloudOn ? {
+      apikey: CFG.anonKey,
+      Authorization: "Bearer " + CFG.anonKey,
+      "Content-Type": "application/json"
+    } : null;
+
+    /* —— 本地兜底存储 —— */
+    function loadObj(key) {
+      try {
+        const o = JSON.parse(localStorage.getItem(key));
+        return o && typeof o === "object" && !Array.isArray(o) ? o : {};
+      } catch { return {}; }
+    }
+    const localCounts = loadObj("tg_likes");   // 未配置云端时的票数
+    const likedFlags = loadObj("tg_liked");    // 本浏览器赞过哪些照片
+    const saveObj = (key, o) => { try { localStorage.setItem(key, JSON.stringify(o)); } catch {} };
+
+    /* —— 数据访问 —— */
+    async function getCount(key) {
+      if (cloudOn) {
+        const res = await fetch(`${REST}/likes?photo=eq.${encodeURIComponent(key)}&select=count`, { headers: HEADERS });
+        if (!res.ok) throw new Error("likes " + res.status);
+        const rows = await res.json();
+        return rows.length ? rows[0].count : 0;
+      }
+      return localCounts[key] || 0;
+    }
+    async function addLike(key) {
+      if (cloudOn) {
+        const res = await fetch(`${REST}/rpc/like_photo`, {
+          method: "POST", headers: HEADERS, body: JSON.stringify({ p: key })
+        });
+        if (!res.ok) throw new Error("like " + res.status);
+        return await res.json(); // 函数返回最新票数
+      }
+      localCounts[key] = (localCounts[key] || 0) + 1;
+      saveObj("tg_likes", localCounts);
+      return localCounts[key];
+    }
+    async function topList() {
+      let rows = [];
+      if (cloudOn) {
+        try {
+          const res = await fetch(`${REST}/likes?select=photo,count&order=count.desc&limit=40`, { headers: HEADERS });
+          if (res.ok) rows = await res.json();
+        } catch { /* 网络问题时给空榜 */ }
+      } else {
+        rows = Object.entries(localCounts).map(([photo, count]) => ({ photo, count }));
+        rows.sort((a, b) => b.count - a.count);
+      }
+      const known = new Map(ALL.map((s) => [s.src, s.name]));
+      return rows
+        .filter((r) => r.count > 0 && known.has(r.photo))
+        .slice(0, 10)
+        .map((r) => ({ src: r.photo, name: known.get(r.photo), count: r.count }));
+    }
+
+    /* —— 点赞按钮（灯箱 + 3D 放大层共用逻辑） —— */
+    const btns = {
+      lightbox: { btn: $("#lbLikeBtn"), num: $("#lbLikeCount"), key: null },
+      s3: { btn: $("#s3LikeBtn"), num: $("#s3LikeCount"), key: null }
+    };
+
+    function heartsFly(btn) {
+      const r = btn.getBoundingClientRect();
+      for (let i = 0; i < 10; i++) {
+        const h = document.createElement("span");
+        h.className = "heart-fly";
+        h.textContent = pick(["❤", "💛", "🧡", "💖", "✨"]);
+        h.style.left = r.left + r.width / 2 + rand(-8, 8) + "px";
+        h.style.top = r.top + "px";
+        h.style.setProperty("--dx", rand(-50, 50) + "px");
+        h.style.setProperty("--rot", rand(-40, 40) + "deg");
+        h.style.animationDelay = i * 55 + "ms";
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 1400 + i * 55);
+      }
+    }
+
+    function setBtn(ctx, count) {
+      ctx.num.textContent = count;
+      ctx.btn.classList.toggle("liked", !!likedFlags[ctx.key]);
+    }
+
+    Object.entries(btns).forEach(([name, ctx]) => {
+      if (!ctx.btn) return;
+      ctx.btn.addEventListener("click", async () => {
+        if (!ctx.key) return;
+        if (likedFlags[ctx.key]) {
+          // 已赞过：心跳一下提醒
+          ctx.btn.classList.remove("liked");
+          void ctx.btn.offsetWidth;
+          ctx.btn.classList.add("liked");
+          return;
+        }
+        const key = ctx.key;
+        likedFlags[key] = 1;
+        saveObj("tg_liked", likedFlags);
+        heartsFly(ctx.btn);
+        ctx.num.textContent = String((parseInt(ctx.num.textContent, 10) || 0) + 1); // 先乐观 +1
+        ctx.btn.classList.add("liked");
+        try {
+          const real = await addLike(key);
+          if (ctx.key === key) ctx.num.textContent = real;
+        } catch { /* 网络失败时保留乐观值，本地标记已存 */ }
+      });
+    });
+
+    addEventListener("photoshow", async (e) => {
+      const ctx = btns[e.detail.context];
+      if (!ctx || !ctx.btn) return;
+      ctx.key = e.detail.src;
+      setBtn(ctx, "…");
+      try {
+        const n = await getCount(ctx.key);
+        if (ctx.key === e.detail.src) setBtn(ctx, n);
+      } catch { setBtn(ctx, 0); }
+    });
+    addEventListener("photohide", (e) => {
+      const ctx = btns[e.detail.context];
+      if (ctx) ctx.key = null;
+    });
+
+    /* —— 人气殿堂：倒序揭榜 —— */
+    const view = $("#rankView"), podium = $("#rankPodium"), rest = $("#rankRest"), empty = $("#rankEmpty");
+    let isOpen = false, revealTimers = [];
+
+    function makeCard(item, rank) {
+      const card = document.createElement("div");
+      card.className = "rank-card" + (rank <= 3 ? ` r${rank}` : "");
+      const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+      card.innerHTML = `
+        ${rank === 1 ? '<div class="rc-crown" style="display:none">👑</div>' : ""}
+        <div class="rc-rank">${medal}</div>
+        <div class="rc-frame">
+          <div class="rc-photo" style="background-image:url('${encodeURI(item.src)}')"></div>
+          <div class="rc-info">
+            <div class="rc-name">${item.name}</div>
+            <div class="rc-likes">❤ <span>0</span></div>
+          </div>
+        </div>`;
+      card.addEventListener("click", () => openZoom(item.src, item.name));
+      return card;
+    }
+
+    function countUpTo(el, target) {
+      const t0 = performance.now(), dur = 900;
+      (function step(t) {
+        const k = Math.min(1, (t - t0) / dur);
+        el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) requestAnimationFrame(step);
+      })(t0);
+    }
+
+    function openZoom(src, name) {
+      const zoom = $("#s3Zoom");
+      $("#s3ZoomImg").src = encodeURI(src);
+      $("#s3ZoomName").textContent = name;
+      zoom.classList.add("open");
+      dispatchEvent(new CustomEvent("photoshow", { detail: { context: "s3", src } }));
+    }
+    // three.js 加载失败时由这里兜底处理放大层的关闭
+    if (!window.THREE) {
+      $("#s3Zoom").addEventListener("click", (e) => {
+        if (e.target.closest(".pdm-bar")) return;
+        $("#s3Zoom").classList.remove("open");
+        dispatchEvent(new CustomEvent("photohide", { detail: { context: "s3" } }));
+      });
+    }
+
+    async function open() {
+      isOpen = true;
+      view.classList.add("open");
+      document.body.style.overflow = "hidden";
+      podium.innerHTML = "";
+      rest.innerHTML = "";
+      empty.classList.remove("show");
+
+      const list = await topList();
+      if (!isOpen) return;
+      if (!list.length) { empty.classList.add("show"); return; }
+
+      // 第 1/2/3 名站领奖台（视觉顺序：2、1、3），4~10 名在下方
+      const cards = list.map((item, i) => makeCard(item, i + 1));
+      if (cards[1]) podium.appendChild(cards[1]);
+      podium.appendChild(cards[0]);
+      if (cards[2]) podium.appendChild(cards[2]);
+      cards.slice(3).forEach((c) => rest.appendChild(c));
+
+      // 倒序揭榜：第 10 名先亮，一路揭到冠军
+      for (let i = list.length - 1; i >= 0; i--) {
+        const delay = (list.length - 1 - i) * 360 + 250;
+        revealTimers.push(setTimeout(() => {
+          const card = cards[i];
+          card.classList.add("in");
+          countUpTo(card.querySelector(".rc-likes span"), list[i].count);
+          if (i === 0) {
+            // 冠军登场：皇冠落下 + 金粉爆发
+            const crown = card.querySelector(".rc-crown");
+            if (crown) crown.style.display = "";
+            const r = card.getBoundingClientRect();
+            fx.burst(r.left + r.width / 2, r.top + r.height / 2, { hue: 46, count: 160, speed: 8.5 });
+            fx.burst(r.left + r.width / 2, r.top + r.height / 3, { hue: 320, count: 80, speed: 5.5 });
+          }
+        }, delay));
+      }
+    }
+
+    function close() {
+      isOpen = false;
+      view.classList.remove("open");
+      document.body.style.overflow = "";
+      revealTimers.forEach(clearTimeout);
+      revealTimers = [];
+    }
+
+    $("#dockRank").addEventListener("click", open);
+    $("#rankExit").addEventListener("click", close);
+    return { close, isOpen: () => isOpen };
+  })();
+
   /* ================= ✨ 照片汇聚成字 ================= */
   const converge = (function () {
     const wrap = $("#converge"), canvas = $("#convergeCanvas");
@@ -542,6 +771,7 @@
   addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
     if (bbox.isOpen()) bbox.close();
+    else if (ranking.isOpen()) ranking.close();
     else if (tvwall.isOpen()) tvwall.exit();
   });
 

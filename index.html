@@ -124,6 +124,7 @@
     <!-- 本张照片的专属弹幕 -->
     <div class="pdm-layer" id="lbDmLayer"></div>
     <div class="pdm-bar" id="lbDmBar">
+      <button class="like-btn" id="lbLikeBtn" title="给这张照片点赞"><span>❤</span><b id="lbLikeCount">0</b></button>
       <input id="lbDmInput" maxlength="40" placeholder="给这张照片发条弹幕…">
       <button id="lbDmSend">发送 ➤</button>
       <label class="pdm-toggle"><input type="checkbox" id="lbDmOn" checked><span>弹幕</span></label>
@@ -138,6 +139,7 @@
     <button class="dock-btn" id="dockMuseum" title="虚拟美术馆"><span>🏛️</span><i>美术馆</i></button>
     <button class="dock-btn" id="dockTv" title="电视墙模式（活动大屏）"><span>📺</span><i>电视墙</i></button>
     <button class="dock-btn" id="dockBox" title="照片盲盒"><span>🎁</span><i>盲盒</i></button>
+    <button class="dock-btn" id="dockRank" title="人气殿堂 · 点赞排行"><span>🏆</span><i>人气榜</i></button>
     <button class="dock-btn" id="dockFire" title="烟花庆祝"><span>🎆</span><i>烟花</i></button>
     <button class="dock-btn" id="dockStar" title="重播照片汇聚"><span>✨</span><i>汇聚</i></button>
   </div>
@@ -170,6 +172,7 @@
     <!-- 本张照片的专属弹幕 -->
     <div class="pdm-layer" id="s3DmLayer"></div>
     <div class="pdm-bar" id="s3DmBar">
+      <button class="like-btn" id="s3LikeBtn" title="给这张照片点赞"><span>❤</span><b id="s3LikeCount">0</b></button>
       <input id="s3DmInput" maxlength="40" placeholder="给这张照片发条弹幕…">
       <button id="s3DmSend">发送 ➤</button>
       <label class="pdm-toggle"><input type="checkbox" id="s3DmOn" checked><span>弹幕</span></label>
@@ -207,6 +210,18 @@
       </div>
     </div>
     <button class="bbox-close" id="bboxClose">✕</button>
+  </div>
+
+  <!-- 人气殿堂：点赞 TOP10 -->
+  <div class="rankview" id="rankView">
+    <button class="s3-exit" id="rankExit">✕ 退出</button>
+    <div class="rank-head">
+      <h2 class="rank-title">人气殿堂</h2>
+      <p class="rank-sub">HALL OF FAME · 大家最爱的 10 张照片 · 倒序揭榜</p>
+    </div>
+    <div class="rank-podium" id="rankPodium"></div>
+    <div class="rank-rest" id="rankRest"></div>
+    <div class="rank-empty" id="rankEmpty">还没有照片被点赞，去给喜欢的照片点个 ❤ 吧</div>
   </div>
 
   <!-- 烟花 / 粒子特效画布 -->
