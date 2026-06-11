@@ -7,7 +7,12 @@
   const isTouch = matchMedia("(pointer: coarse)").matches;
 
   /* ---------- 1. 开场加载 ---------- */
-  window.addEventListener("load", () => {
+  // 脚本由 data-loader 动态加载，可能晚于 window.load，所以兼容两种时机
+  window.whenPageReady = (fn) => {
+    if (document.readyState === "complete") setTimeout(fn, 16);
+    else window.addEventListener("load", fn);
+  };
+  whenPageReady(() => {
     setTimeout(() => $("#loader").classList.add("done"), 1700);
   });
 

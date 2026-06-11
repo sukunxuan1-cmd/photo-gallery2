@@ -467,7 +467,7 @@
   })();
 
   // 开场：加载动画结束后自动播放一次照片汇聚
-  window.addEventListener("load", () => setTimeout(converge.play, 2100));
+  window.whenPageReady(() => setTimeout(converge.play, 2100));
 
   /* ================= ESC 统一关闭 ================= */
   addEventListener("keydown", (e) => {

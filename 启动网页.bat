@@ -7,16 +7,14 @@ if %errorlevel%==0 (set PY=python) else (
     if %errorlevel%==0 (set PY=py) else (set PY=)
 )
 if "%PY%"=="" (
-    echo [提示] 没有找到 Python，无法启动本地服务，3D 场景的照片将无法显示。
+    echo [提示] 没有找到 Python，无法启动本地服务。
     echo 请安装 Python（勾选 Add Python to PATH）：https://www.python.org/downloads/
-    echo 现在改为直接打开 index.html（基础功能可用）...
+    echo 现在改为直接打开 index.html（照片需先双击「更新照片.bat」生成清单）...
     start "" index.html
     pause
     exit /b
 )
-echo 正在更新照片清单...
-%PY% tools\build_photos.py
-echo.
 echo 正在启动时光画廊... 浏览器即将打开 http://localhost:8520
+echo 照片实时扫描已开启：往 photos 里加图片后，刷新浏览器即可显示
 start "" http://localhost:8520
-%PY% -m http.server 8520
+%PY% server.py
