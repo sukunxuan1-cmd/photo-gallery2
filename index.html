@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>遇见幸福 · 时光画廊</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 开场加载动画 -->
+  <div id="loader">
+    <div class="loader-inner">
+      <div class="loader-ring"></div>
+      <div class="loader-logo">遇见幸福</div>
+      <div class="loader-sub">TIME GALLERY · 时光画廊</div>
+      <div class="loader-bar"><span></span></div>
+    </div>
+  </div>
+
+  <!-- 星空粒子背景 -->
+  <canvas id="particles"></canvas>
+  <!-- 极光氛围 -->
+  <div class="aurora">
+    <div class="aurora-blob b1"></div>
+    <div class="aurora-blob b2"></div>
+    <div class="aurora-blob b3"></div>
+  </div>
+  <div class="noise"></div>
+
+  <!-- 自定义光标 -->
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- 顶部导航 -->
+  <nav id="nav">
+    <div class="nav-logo" data-magnetic>✦ 时光画廊</div>
+    <div class="nav-right">
+      <button class="music-btn" id="musicBtn" title="背景音乐">
+        <span class="bars"><i></i><i></i><i></i><i></i></span>
+        <span class="music-label">BGM</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- 首屏 Hero -->
+  <header class="hero" id="hero">
+    <p class="hero-kicker reveal">PHOTO COLLECTION · 2024 — 2026</p>
+    <h1 class="hero-title" id="heroTitle">遇见幸福</h1>
+    <p class="hero-sub reveal">每一张照片，都是时光写给我们的情书</p>
+    <div class="hero-stats reveal">
+      <div class="stat"><span class="stat-num" id="statPhotos" data-count="0">0</span><span class="stat-label">张照片</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num" id="statAlbums" data-count="0">0</span><span class="stat-label">个相册</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num" id="statDays" data-count="0">0</span><span class="stat-label">个日夜</span></div>
+    </div>
+    <button class="hero-cta reveal" id="enterBtn" data-magnetic>
+      <span>开启时光之旅</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14m0 0l-6-6m6 6l6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="scroll-hint"><span></span></div>
+  </header>
+
+  <!-- 相册分类区 -->
+  <main class="albums" id="albums">
+    <div class="section-head reveal">
+      <h2 class="section-title">我们的故事</h2>
+      <p class="section-sub">OUR MOMENTS · 点击相册，走进那一天</p>
+    </div>
+    <div class="album-grid" id="albumGrid"><!-- JS 渲染 --></div>
+  </main>
+
+  <footer class="footer reveal">
+    <div class="footer-line"></div>
+    <p class="footer-text">✦ 把照片放进 <code>photos/对应文件夹</code>，运行「更新照片」，这里就会亮起来 ✦</p>
+    <p class="footer-copy">Time Gallery · Made with ♥</p>
+  </footer>
+
+  <!-- 相册浏览层 -->
+  <section class="gallery-view" id="galleryView">
+    <div class="gallery-head">
+      <button class="back-btn" id="backBtn" data-magnetic>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M19 12H5m0 0l6-6m-6 6l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        返回
+      </button>
+      <div class="gallery-title-wrap">
+        <h2 class="gallery-title" id="galleryTitle"></h2>
+        <p class="gallery-count" id="galleryCount"></p>
+      </div>
+      <button class="play-btn" id="slideshowBtn" data-magnetic>▶ 幻灯片</button>
+    </div>
+    <div class="masonry" id="masonry"></div>
+    <div class="gallery-empty" id="galleryEmpty">
+      <div class="empty-icon">📷</div>
+      <p>这个相册还在等待它的第一张照片</p>
+      <p class="empty-tip">把照片放进对应文件夹后，双击「更新照片.bat」即可</p>
+    </div>
+  </section>
+
+  <!-- 灯箱 -->
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-bg"></div>
+    <button class="lb-close" id="lbClose">✕</button>
+    <button class="lb-nav lb-prev" id="lbPrev">‹</button>
+    <button class="lb-nav lb-next" id="lbNext">›</button>
+    <figure class="lb-stage">
+      <img id="lbImg" src="" alt="">
+    </figure>
+    <div class="lb-caption" id="lbCaption"></div>
+    <div class="lb-progress"><span id="lbProgress"></span></div>
+  </div>
+
+  <script src="js/photos.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
