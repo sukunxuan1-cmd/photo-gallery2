@@ -127,11 +127,40 @@
 
   <!-- 悬浮功能坞 -->
   <div class="dock" id="dock">
+    <button class="dock-btn" id="dockGalaxy" title="3D 照片星河"><span>🌌</span><i>星河</i></button>
+    <button class="dock-btn" id="dockMuseum" title="虚拟美术馆"><span>🏛️</span><i>美术馆</i></button>
     <button class="dock-btn" id="dockTv" title="电视墙模式（活动大屏）"><span>📺</span><i>电视墙</i></button>
     <button class="dock-btn" id="dockBox" title="照片盲盒"><span>🎁</span><i>盲盒</i></button>
     <button class="dock-btn" id="dockFire" title="烟花庆祝"><span>🎆</span><i>烟花</i></button>
     <button class="dock-btn" id="dockDm" title="弹幕祝福墙"><span>💬</span><i>弹幕</i></button>
     <button class="dock-btn" id="dockStar" title="重播照片汇聚"><span>✨</span><i>汇聚</i></button>
+  </div>
+
+  <!-- 3D 照片星河 -->
+  <div class="scene3d" id="galaxyView">
+    <canvas id="galaxyCanvas"></canvas>
+    <div class="s3-brand">🌌 遇见幸福 · 照片星河</div>
+    <div class="s3-hint">拖动旋转 · 滚轮/双指缩放 · 点击照片查看</div>
+    <button class="s3-exit" id="galaxyExit">✕ 退出</button>
+  </div>
+
+  <!-- 虚拟美术馆 -->
+  <div class="scene3d" id="museumView">
+    <canvas id="museumCanvas"></canvas>
+    <div class="s3-brand">🏛️ 遇见幸福 · 时光美术馆</div>
+    <div class="s3-hint" id="museumHint">W/S 或 ↑↓ 前进后退 · 拖动环顾 · 点击画作欣赏</div>
+    <div class="s3-walk">
+      <button id="walkFwd">▲</button>
+      <button id="walkBack">▼</button>
+    </div>
+    <button class="s3-exit" id="museumExit">✕ 退出</button>
+  </div>
+
+  <!-- 3D 场景的照片放大层 -->
+  <div class="s3-zoom" id="s3Zoom">
+    <img id="s3ZoomImg" src="" alt="">
+    <div class="s3-zoom-name" id="s3ZoomName"></div>
+    <div class="s3-zoom-tip">点击任意处关闭</div>
   </div>
 
   <!-- 电视墙模式 -->
@@ -192,5 +221,7 @@
   <script src="js/photos.js"></script>
   <script src="js/main.js"></script>
   <script src="js/extras.js"></script>
+  <script src="libs/three.min.js"></script>
+  <script src="js/scene3d.js"></script>
 </body>
 </html>
