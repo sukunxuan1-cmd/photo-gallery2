@@ -43,15 +43,26 @@
 
 ```
 photo-gallery2/
-├── index.html        # 主页面
-├── css/style.css     # 全部样式与动效
-├── js/main.js        # 交互逻辑（粒子、画廊、灯箱、BGM）
-├── js/photos.js      # 照片清单（由脚本自动生成）
-├── photos/           # ⭐ 照片放这里，按活动分文件夹
-├── assets/           # 可选：放 bgm.mp3
-├── tools/build_photos.py  # 扫描照片生成清单
-├── 更新照片.bat       # 一键更新照片清单
-└── 启动网页.bat       # 一键启动本地网页
+├── index.html             # 主页面
+├── css/style.css          # 全部样式与动效
+├── js/
+│   ├── data-loader.js     # 照片数据加载（实时接口优先，清单兜底）
+│   ├── main.js            # 基础交互（粒子、相框、画廊、灯箱、BGM）
+│   ├── extras.js          # 惊喜功能（电视墙/盲盒/烟花/汇聚/弹幕/点赞/人气榜）
+│   ├── scene3d.js         # three.js 场景（照片星河、虚拟美术馆）
+│   ├── cloud-config.js    # ☁️ 云端共享配置（Supabase）
+│   └── photos.js          # 照片清单（自动生成，勿手改）
+├── libs/three.min.js      # three.js（本地化，断网可用）
+├── photos/                # ⭐ 照片放这里，按活动分文件夹
+├── assets/                # 可选：放 bgm.mp3 换背景音乐
+├── server.py              # 本地服务器（带照片实时扫描接口）
+├── tools/
+│   ├── build_photos.py    # 扫描照片生成清单
+│   ├── compress_photos.py # 压缩大图（发布流程自动调用）
+│   └── supabase_setup.sql # 云端弹幕/点赞建表脚本
+├── .github/workflows/pages.yml  # 推送 main 自动压图、生成清单、发布 Pages
+├── 更新照片.bat            # 手动更新照片清单（file:// 模式才需要）
+└── 启动网页.bat            # 一键启动本地网页
 ```
 
 ## 支持的图片格式

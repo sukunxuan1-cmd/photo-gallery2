@@ -525,6 +525,8 @@
 
       addEventListener("keydown", (e) => { keys[e.key.toLowerCase()] = true; });
       addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
+      // 切走窗口时收不到 keyup，回来会“自己走路”——失焦时清空按键状态
+      addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
       const fwdBtn = $("#walkFwd"), backBtn = $("#walkBack");
       fwdBtn.addEventListener("pointerdown", () => { walkFwd = true; });
       backBtn.addEventListener("pointerdown", () => { walkBack = true; });
