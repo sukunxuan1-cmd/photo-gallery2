@@ -202,7 +202,7 @@
   document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
   $("#enterBtn").addEventListener("click", () => {
-    $("#albums").scrollIntoView({ behavior: "smooth" });
+    $("#frame3d").scrollIntoView({ behavior: "smooth" });
   });
 
   /* ---------- 8. 渲染相册卡片 ---------- */
@@ -260,6 +260,125 @@
         });
       }
     });
+  })();
+
+  /* ---------- 8.5 3D 时光相框 ----------
+     每次打开随机抽一批照片放进金边相框组成的 3D 旋转环，
+     每 5 秒整环翻面换上新照片，支持鼠标/手指拖动旋转。 */
+  (function frame3d() {
+    const stage = $("#frameStage");
+    const ring = $("#frameRing");
+    if (!stage || !ring) return;
+
+    const CARD_COUNT = 6;
+    const radius = innerWidth < 640 ? 230 : 330;
+
+    // 照片池：全部分类打散后循环取用，避免连续重复
+    const pool = [];
+    DATA.forEach((cat) => cat.photos.forEach((src) => pool.push({ src, name: cat.name })));
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    let poolIdx = 0;
+    function nextShot() {
+      if (!pool.length) return null;
+      const shot = pool[poolIdx % pool.length];
+      poolIdx++;
+      return shot;
+    }
+
+    function fillCard(card, i) {
+      const photoEl = card.querySelector(".fc-photo");
+      const labelEl = card.querySelector(".fc-label");
+      const shot = nextShot();
+      if (shot) {
+        photoEl.className = "fc-photo";
+        photoEl.style.background = "";
+        photoEl.style.backgroundImage = `url('${encodeURI(shot.src)}')`;
+        labelEl.textContent = shot.name;
+      } else {
+        photoEl.className = "fc-photo placeholder";
+        photoEl.style.background = `linear-gradient(${GRADS[i % GRADS.length]})`;
+        photoEl.style.backgroundImage = "";
+        photoEl.textContent = EMOJIS[i % EMOJIS.length];
+        labelEl.textContent = "等待照片中…";
+      }
+    }
+
+    const cards = [];
+    for (let i = 0; i < CARD_COUNT; i++) {
+      const card = document.createElement("div");
+      card.className = "frame3d-card";
+      card.innerHTML = `
+        <div class="fc-inner">
+          <div class="fc-face fc-front">
+            <div class="fc-photo"></div>
+            <div class="fc-label"></div>
+          </div>
+          <div class="fc-face fc-back">✦</div>
+        </div>`;
+      fillCard(card, i);
+      ring.appendChild(card);
+      cards.push(card);
+    }
+
+    // 旋转：自动 + 拖动惯性
+    let angle = 0, speed = 0.10, dragVel = 0;
+    let dragging = false, lastX = 0;
+    let tilt = -7, tiltTarget = -7;
+
+    function layout() {
+      cards.forEach((card, i) => {
+        const a = (360 / CARD_COUNT) * i;
+        card.style.transform = `rotateY(${a}deg) translateZ(${radius}px)`;
+      });
+    }
+    layout();
+
+    (function spin() {
+      if (!dragging) {
+        angle += speed + dragVel;
+        dragVel *= 0.95; // 松手后的惯性衰减
+      }
+      tilt += (tiltTarget - tilt) * 0.06;
+      ring.style.transform = `rotateX(${tilt}deg) rotateY(${angle}deg)`;
+      requestAnimationFrame(spin);
+    })();
+
+    stage.addEventListener("pointerdown", (e) => {
+      dragging = true;
+      lastX = e.clientX;
+      stage.setPointerCapture(e.pointerId);
+    });
+    stage.addEventListener("pointermove", (e) => {
+      if (dragging) {
+        const dx = e.clientX - lastX;
+        lastX = e.clientX;
+        angle += dx * 0.35;
+        dragVel = dx * 0.12;
+      }
+      // 鼠标上下位置带来轻微俯仰视差
+      const r = stage.getBoundingClientRect();
+      tiltTarget = -7 - ((e.clientY - r.top) / r.height - 0.5) * 10;
+    });
+    const endDrag = () => { dragging = false; };
+    stage.addEventListener("pointerup", endDrag);
+    stage.addEventListener("pointercancel", endDrag);
+    stage.addEventListener("pointerleave", () => { tiltTarget = -7; });
+
+    // 每 5 秒：整环依次翻面，翻到侧面时换上新照片
+    setInterval(() => {
+      cards.forEach((card, i) => {
+        setTimeout(() => {
+          card.classList.add("flipping");
+          setTimeout(() => {
+            fillCard(card, i);
+            card.classList.remove("flipping");
+          }, 280); // 翻到 90° 侧面（动画 550ms 的中点）时换图
+        }, i * 130);
+      });
+    }, 5000);
   })();
 
   /* ---------- 9. 相册浏览层 ---------- */
