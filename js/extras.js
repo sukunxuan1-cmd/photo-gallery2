@@ -276,7 +276,10 @@
     }
 
     /* —— 云端（Supabase REST，免 SDK） —— */
-    const API = cloudOn ? CFG.url.replace(/\/+$/, "") + "/rest/v1/danmaku" : "";
+    // 容错：把误贴的尾部 /rest/v1/ 去掉，只留项目域名
+    const API = cloudOn
+      ? CFG.url.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "") + "/rest/v1/danmaku"
+      : "";
     const HEADERS = cloudOn ? {
       apikey: CFG.anonKey,
       Authorization: "Bearer " + CFG.anonKey,
@@ -401,7 +404,10 @@
   const ranking = (function likesAndRanking() {
     const CFG = window.CLOUD_DANMAKU || {};
     const cloudOn = !!(CFG.url && CFG.anonKey);
-    const REST = cloudOn ? CFG.url.replace(/\/+$/, "") + "/rest/v1" : "";
+    // 容错：把误贴的尾部 /rest/v1/ 去掉，只留项目域名
+    const REST = cloudOn
+      ? CFG.url.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "") + "/rest/v1"
+      : "";
     const HEADERS = cloudOn ? {
       apikey: CFG.anonKey,
       Authorization: "Bearer " + CFG.anonKey,
