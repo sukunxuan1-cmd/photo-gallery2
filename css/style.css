@@ -912,6 +912,20 @@ body {
   0% { opacity: 1; transform: translate(0, 0) scale(.5); }
   100% { opacity: 0; transform: translate(var(--dx), -100px) scale(1.35) rotate(var(--rot)); }
 }
+.quota-tip {
+  position: fixed; z-index: 9600; pointer-events: none;
+  transform: translateX(-50%);
+  padding: 7px 14px; border-radius: 99px;
+  background: rgba(20, 14, 32, .92);
+  border: 1px solid rgba(255, 107, 157, .5);
+  color: #ffc2d4; font-size: 12px; letter-spacing: .06em; white-space: nowrap;
+  animation: tipUp 1.5s ease-out forwards;
+}
+@keyframes tipUp {
+  0% { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  15%, 75% { opacity: 1; transform: translateX(-50%) translateY(-12px); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-26px); }
+}
 
 /* ---------- 人气殿堂 ---------- */
 .rankview {

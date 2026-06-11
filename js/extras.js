@@ -276,7 +276,10 @@
     }
 
     /* —— 云端（Supabase REST，免 SDK） —— */
-    const API = cloudOn ? CFG.url.replace(/\/+$/, "") + "/rest/v1/danmaku" : "";
+    // 容错：把误贴的尾部 /rest/v1/ 去掉，只留项目域名
+    const API = cloudOn
+      ? CFG.url.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "") + "/rest/v1/danmaku"
+      : "";
     const HEADERS = cloudOn ? {
       apikey: CFG.anonKey,
       Authorization: "Bearer " + CFG.anonKey,
@@ -401,7 +404,10 @@
   const ranking = (function likesAndRanking() {
     const CFG = window.CLOUD_DANMAKU || {};
     const cloudOn = !!(CFG.url && CFG.anonKey);
-    const REST = cloudOn ? CFG.url.replace(/\/+$/, "") + "/rest/v1" : "";
+    // 容错：把误贴的尾部 /rest/v1/ 去掉，只留项目域名
+    const REST = cloudOn
+      ? CFG.url.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "") + "/rest/v1"
+      : "";
     const HEADERS = cloudOn ? {
       apikey: CFG.anonKey,
       Authorization: "Bearer " + CFG.anonKey,
@@ -481,32 +487,63 @@
       }
     }
 
+    /* —— 每日点赞额度：每人每天 5 个赞，同一张照片可以连点 —— */
+    const DAILY_QUOTA = 5;
+    function today() {
+      const d = new Date();
+      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    }
+    function quotaLeft() {
+      const q = loadObj("tg_like_quota");
+      return q.date === today() ? Math.max(0, DAILY_QUOTA - (q.used || 0)) : DAILY_QUOTA;
+    }
+    function useQuota() {
+      const q = loadObj("tg_like_quota");
+      const used = q.date === today() ? (q.used || 0) + 1 : 1;
+      saveObj("tg_like_quota", { date: today(), used });
+      return DAILY_QUOTA - used;
+    }
+    function quotaTip(btn, text) {
+      const tip = document.createElement("span");
+      tip.className = "quota-tip";
+      tip.textContent = text;
+      const r = btn.getBoundingClientRect();
+      tip.style.left = r.left + r.width / 2 + "px";
+      tip.style.top = r.top - 12 + "px";
+      document.body.appendChild(tip);
+      setTimeout(() => tip.remove(), 1500);
+    }
+
     function setBtn(ctx, count) {
       ctx.num.textContent = count;
       ctx.btn.classList.toggle("liked", !!likedFlags[ctx.key]);
+      ctx.btn.title = `给这张照片点赞（今日还剩 ${quotaLeft()} 个赞）`;
     }
 
     Object.entries(btns).forEach(([name, ctx]) => {
       if (!ctx.btn) return;
       ctx.btn.addEventListener("click", async () => {
         if (!ctx.key) return;
-        if (likedFlags[ctx.key]) {
-          // 已赞过：心跳一下提醒
+        if (quotaLeft() <= 0) {
+          // 今日额度用完：心跳一下提醒
           ctx.btn.classList.remove("liked");
           void ctx.btn.offsetWidth;
           ctx.btn.classList.add("liked");
+          quotaTip(ctx.btn, "今天的 5 个赞用完啦，明天再来 ✦");
           return;
         }
         const key = ctx.key;
-        likedFlags[key] = 1;
+        const left = useQuota();
+        likedFlags[key] = 1; // 标记赞过，用于按钮红心状态
         saveObj("tg_liked", likedFlags);
         heartsFly(ctx.btn);
+        quotaTip(ctx.btn, left > 0 ? `今日还剩 ${left} 个赞 ❤` : "最后一个赞也给你了 💛");
         ctx.num.textContent = String((parseInt(ctx.num.textContent, 10) || 0) + 1); // 先乐观 +1
         ctx.btn.classList.add("liked");
         try {
           const real = await addLike(key);
           if (ctx.key === key) ctx.num.textContent = real;
-        } catch { /* 网络失败时保留乐观值，本地标记已存 */ }
+        } catch { /* 网络失败时保留乐观值 */ }
       });
     });
 

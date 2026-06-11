@@ -14,6 +14,6 @@
    说明：anon key 本来就是设计为公开放在前端的，
    配合上面 SQL 里的行级安全策略，访客只能「读弹幕、发弹幕」，无法改删。 */
 window.CLOUD_DANMAKU = {
-  url: "https://ndvfdkcojvvkyngnhitz.supabase.co",      // 例如 "https://abcd1234.supabase.co"
+  url: "https://ndvfdkcojvvkyngnhitz.supabase.co",      // 项目域名，结尾不要带 /rest/v1/
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kdmZka2NvanZ2a3luZ25oaXR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExOTY3OTQsImV4cCI6MjA5Njc3Mjc5NH0.gbf9rMlmpLUJvFBQ594a5CgrsPkHMEddy--EWEmezkE"   // 例如 "eyJhbGciOiJIUzI1NiIs..."
 };
