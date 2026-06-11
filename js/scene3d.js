@@ -13,6 +13,22 @@
   const ALL = [];
   DATA.forEach((c) => c.photos.forEach((src) => ALL.push({ src, name: c.name })));
 
+  /* ================= file:// 协议检测 =================
+     直接双击 index.html 打开时，浏览器禁止 WebGL 读取本地图片，
+     3D 场景里的照片会被安全策略拦下。这里给出明确提示并安全降级。 */
+  const IS_FILE = location.protocol === "file:";
+  let warned = false;
+  function warnFileProto() {
+    if (warned) return;
+    warned = true;
+    const tip = document.createElement("div");
+    tip.className = "s3-warn";
+    tip.innerHTML = "⚠️ 检测到网页是<b>双击 index.html</b> 打开的，浏览器安全限制导致 3D 场景读不到照片。<br>请改用 <b>「启动网页.bat」</b> 打开（地址为 http://localhost:8520），照片就能正常显示。";
+    document.body.appendChild(tip);
+    setTimeout(() => tip.classList.add("show"), 50);
+    tip.addEventListener("click", () => tip.remove());
+  }
+
   /* ================= 共享工具 ================= */
 
   // 把照片缩到 256px 再做纹理，省显存
@@ -24,7 +40,11 @@
       const aspect = img.width / img.height;
       cv.width = aspect >= 1 ? S : Math.round(S * aspect);
       cv.height = aspect >= 1 ? Math.round(S / aspect) : S;
-      cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+      const c = cv.getContext("2d");
+      c.drawImage(img, 0, 0, cv.width, cv.height);
+      // file:// 下画布会被安全策略污染，传给 WebGL 会直接抛错——提前拦截
+      try { c.getImageData(0, 0, 1, 1); }
+      catch { warnFileProto(); onReady(null, 1); return; }
       const tex = new THREE.CanvasTexture(cv);
       tex.encoding = THREE.sRGBEncoding;
       onReady(tex, aspect);
@@ -294,6 +314,7 @@
     function enter() {
       try { if (!built) build(); }
       catch (err) { console.error(err); alert("当前设备不支持 3D 效果"); return; }
+      if (IS_FILE && ALL.length) warnFileProto();
       isOpen = true;
       view.classList.add("open");
       document.body.style.overflow = "hidden";
@@ -538,6 +559,7 @@
     function enter() {
       try { if (!built) build(); }
       catch (err) { console.error(err); alert("当前设备不支持 3D 效果"); return; }
+      if (IS_FILE && ALL.length) warnFileProto();
       isOpen = true;
       view.classList.add("open");
       document.body.style.overflow = "hidden";
