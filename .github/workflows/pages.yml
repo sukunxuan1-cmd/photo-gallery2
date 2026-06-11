@@ -1,0 +1,48 @@
+name: 发布时光画廊到 GitHub Pages
+
+# 每次推送到 main（包括在 GitHub 网页上传照片）都会自动：
+# 1. 重新扫描 photos/ 生成照片清单
+# 2. 发布整站到 GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: 扫描照片生成清单
+        run: python tools/build_photos.py
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v4
+
+      - name: 打包站点
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: 部署
+        id: deployment
+        uses: actions/deploy-pages@v4

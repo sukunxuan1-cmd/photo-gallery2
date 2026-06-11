@@ -57,6 +57,9 @@ jpg / jpeg / png / gif / webp / bmp / jfif / avif
 
 ## ❓ 常见问题
 
+**在 GitHub 网页上传了照片，Pages 网站没显示？**
+照片要上传到 **main 分支** 的 `photos/对应文件夹` 里。每次推送 main，GitHub Actions 会自动重新扫描照片并发布 Pages（约 1-2 分钟生效，第一次需在仓库 Settings → Pages → Source 选择 **GitHub Actions**）。
+
 **星河 / 美术馆里看不到照片，只有占位图？**
 是因为网页是双击 `index.html` 打开的（地址栏 `file://` 开头）。浏览器安全限制禁止 3D（WebGL）读取本地图片。
 👉 解决：用 **`启动网页.bat`** 打开（地址为 `http://localhost:8520`），照片即可正常显示。该脚本启动前还会自动帮你更新照片清单。
