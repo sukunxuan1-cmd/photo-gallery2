@@ -255,18 +255,47 @@
   /* ================= 💬 照片专属弹幕 =================
      每张照片有自己的弹幕：在灯箱 / 3D 放大层里查看照片时，
      这张照片收到过的弹幕循环飘过，新弹幕只属于当前照片。
+     配置了 js/cloud-config.js（Supabase）时全员共享、每 12 秒同步他人新弹幕；
+     未配置则保存在本人浏览器（localStorage）。
      由 main.js / scene3d.js 派发 photoshow / photohide 事件驱动。 */
   (function photoDanmaku() {
     const KEY = "tg_dm_photo";
-    function load() {
+    const CFG = window.CLOUD_DANMAKU || {};
+    const cloudOn = !!(CFG.url && CFG.anonKey);
+
+    /* —— 本地存储（未配置云端时的兜底） —— */
+    function loadLocal() {
       try {
         const o = JSON.parse(localStorage.getItem(KEY));
         return o && typeof o === "object" && !Array.isArray(o) ? o : {};
       } catch { return {}; }
     }
-    const store = load();
-    function save() {
+    const store = loadLocal();
+    function saveLocal() {
       try { localStorage.setItem(KEY, JSON.stringify(store)); } catch {}
+    }
+
+    /* —— 云端（Supabase REST，免 SDK） —— */
+    const API = cloudOn ? CFG.url.replace(/\/+$/, "") + "/rest/v1/danmaku" : "";
+    const HEADERS = cloudOn ? {
+      apikey: CFG.anonKey,
+      Authorization: "Bearer " + CFG.anonKey,
+      "Content-Type": "application/json"
+    } : null;
+
+    async function cloudList(key) {
+      const res = await fetch(
+        `${API}?photo=eq.${encodeURIComponent(key)}&select=msg&order=created_at.asc&limit=200`,
+        { headers: HEADERS });
+      if (!res.ok) throw new Error("cloud " + res.status);
+      return (await res.json()).map((r) => r.msg);
+    }
+    function cloudSend(key, msg) {
+      return fetch(API, {
+        method: "POST",
+        headers: { ...HEADERS, Prefer: "return=minimal" },
+        body: JSON.stringify({ photo: key, msg })
+      });
     }
 
     const ctxs = {}; // 展示场景：lightbox（灯箱）、s3（3D 放大层）
@@ -287,19 +316,35 @@
       ).onfinish = () => el.remove();
     }
 
+    // 从云端拉取当前照片的弹幕（照片已切换则丢弃结果）
+    async function refresh(ctx, announce) {
+      const key = ctx.key;
+      if (!cloudOn || !key) return;
+      try {
+        const msgs = await cloudList(key);
+        if (ctx.key !== key) return;
+        ctx.msgs = msgs;
+        if (announce && msgs.length) spawnIn(ctx, msgs[0]);
+      } catch (e) { /* 网络波动时沿用现有列表 */ }
+    }
+
     function show(name, key) {
       const ctx = ctxs[name];
       if (!ctx) return;
       hide(name);
       ctx.key = key;
       ctx.idx = 0;
-      const msgs = store[key] || [];
-      if (msgs.length) spawnIn(ctx, msgs[0]);
+      ctx.msgs = (store[key] || []).slice();
+      if (cloudOn) {
+        refresh(ctx, true);                                  // 进来先拉一次
+        ctx.poll = setInterval(() => refresh(ctx, false), 12000); // 同步他人新弹幕
+      } else if (ctx.msgs.length) {
+        spawnIn(ctx, ctx.msgs[0]);
+      }
       ctx.timer = setInterval(() => {
-        const list = store[ctx.key] || [];
-        if (!list.length) return;
-        ctx.idx = (ctx.idx + 1) % list.length;
-        spawnIn(ctx, list[ctx.idx]);
+        if (!ctx.msgs.length) return;
+        ctx.idx = (ctx.idx + 1) % ctx.msgs.length;
+        spawnIn(ctx, ctx.msgs[ctx.idx]);
       }, 3200);
     }
 
@@ -307,23 +352,30 @@
       const ctx = ctxs[name];
       if (!ctx) return;
       clearInterval(ctx.timer);
-      ctx.timer = null;
+      clearInterval(ctx.poll);
+      ctx.timer = ctx.poll = null;
       ctx.key = null;
+      ctx.msgs = [];
       ctx.layer.innerHTML = "";
     }
 
     function register(name, ids) {
       const ctx = ctxs[name] = {
         layer: $(ids.layer), input: $(ids.input), on: $(ids.on),
-        key: null, timer: null, idx: 0
+        key: null, timer: null, poll: null, idx: 0, msgs: []
       };
       if (!ctx.layer || !ctx.input) return;
       function send() {
         const text = ctx.input.value.trim();
         if (!text || !ctx.key) return;
-        (store[ctx.key] = store[ctx.key] || []).push(text);
-        if (store[ctx.key].length > 200) store[ctx.key] = store[ctx.key].slice(-200);
-        save();
+        ctx.msgs.push(text);
+        if (cloudOn) {
+          cloudSend(ctx.key, text).catch(() => {});
+        } else {
+          (store[ctx.key] = store[ctx.key] || []).push(text);
+          if (store[ctx.key].length > 200) store[ctx.key] = store[ctx.key].slice(-200);
+          saveLocal();
+        }
         ctx.input.value = "";
         spawnIn(ctx, text, true);
       }
