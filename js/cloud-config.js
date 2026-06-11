@@ -7,6 +7,8 @@
    3. 左侧 Settings → API：
       - 把 Project URL 填到下面的 url
       - 把 anon public key 填到下面的 anonKey
+        （新版控制台叫 Publishable key，sb_publishable_ 开头，作用相同；
+         sb_secret_ 开头的 Secret key 是后端专用，千万不要填到这里）
    4. 保存本文件，提交到仓库（合并进 main 后 Pages 生效）
 
    说明：anon key 本来就是设计为公开放在前端的，
