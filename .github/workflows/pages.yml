@@ -20,9 +20,8 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    # 注意：不声明 environment，否则 Pages 未启用时任务会在分配 runner 前被直接拒绝，
+    # 永远走不到下面 configure-pages 的自动启用步骤
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
